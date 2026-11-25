@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odd Lot Trading Co. — Cards, Coins, Comics &amp; Collectibles</title>
+<meta name="description" content="Odd Lot Trading Co. — vintage and modern sports cards, coins, currency, comics and collectibles. Uncommon finds. Always a good haul. Buy It Now or Make an Offer on eBay.">
+<meta property="og:title" content="Odd Lot Trading Co.">
+<meta property="og:description" content="Cards, coins, comics, collectibles and more. Uncommon finds. Always a good haul.">
+<meta property="og:image" content="assets/logo-round.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0d0b09">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Oswald:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Odd Lot Trading Co. home">
+      <img src="assets/logo-round.webp" alt="" width="42" height="42">
+      <span>Odd Lot</span>
+    </a>
+    <nav class="main" aria-label="Main">
+      <a href="#shop">Shop</a>
+      <a href="blog/index.html">Blog</a>
+      <a href="#about">About</a>
+      <a class="btn btn-gold" href="https://www.ebay.com/usr/oddlottrading" target="_blank" rel="noopener">eBay Store</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <h1 class="sr-only">Odd Lot Trading Co.</h1>
+      <img class="logo" src="assets/logo-wide.webp" alt="Odd Lot Trading Co. — Cards, Coins, Comics, Collectibles, Electronics and more. Uncommon finds. Always a good haul." width="1200" height="614">
+      <p class="lead">Vintage and modern sports cards, coins and currency, comics, and collectibles — every item ships through eBay with Buy It Now or Make an Offer.</p>
+      <ul class="stats">
+        <li><strong id="stat-count">213</strong>Items listed</li>
+        <li><strong>100%</strong>Positive feedback</li>
+        <li><strong id="stat-vintage">—</strong>Vintage pieces</li>
+      </ul>
+      <div class="rule" aria-hidden="true">★</div>
+    </div>
+  </section>
+
+  <section id="shop">
+    <div class="wrap">
+      <div class="shop-head">
+        <h2>The Haul</h2>
+        <div class="count" id="result-count" aria-live="polite"></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+      <div class="controls">
+        <label class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" id="q" placeholder="Search players, teams, years, sets…" aria-label="Search listings">
+        </label>
+        <select id="sort" aria-label="Sort listings">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="year-asc">Year: Oldest first</option>
+          <option value="year-desc">Year: Newest first</option>
+        </select>
+        <label class="toggle"><input type="checkbox" id="vintage"> Vintage only (pre-1980)</label>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="more"><button class="btn btn-line" id="more" hidden>Show more</button></div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="wrap">
+      <img src="assets/logo-round.webp" alt="Odd Lot Trading Co. round emblem" width="280" height="280" loading="lazy">
+      <div>
+        <h2>Uncommon finds. Always a good haul.</h2>
+        <p>Odd Lot Trading Co. digs through collections, estates and forgotten boxes to bring you the good stuff — 1950s and '60s Topps, Fleer Baseball Greats, modern rookies and autos, Golden-to-Modern Age comics, world banknotes, Buffalo nickels, vintage stock certificates, ticket stubs and more.</p>
+        <p>Every item on this site is listed on our eBay store, so you check out with eBay's buyer protection. See something you like? Buy it now, or send us an offer — we read every one.</p>
+        <ul class="pillars">
+          <li>Cards</li><li>Coins</li><li>Comics</li><li>Collectibles</li><li>Electronics</li><li>And more</li>
+        </ul>
+        <a class="btn btn-red" href="https://www.ebay.com/usr/oddlottrading" target="_blank" rel="noopener">Visit us on eBay</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>© <span id="yr">2026</span> Odd Lot Trading Co. · All sales handled through <a href="https://www.ebay.com/usr/oddlottrading" target="_blank" rel="noopener">eBay</a>.</div>
+    <div id="updated"></div>
+  </div>
+</footer>
+
+<script src="js/listings.js"></script>
+<script>
+(function(){
+  var data = (window.OLT_LISTINGS && window.OLT_LISTINGS.items) || [];
+  var SNAPSHOT = data;
+  var PAGE = 48;
+  var CATS = ["Baseball Cards","Basketball Cards","Football Cards","Sealed Packs & Boxes","Comics","Coins & Currency","Stock Certificates","Memorabilia"];
+  var state = {cat:"All", q:"", sort:"featured", vintage:false, shown:PAGE};
+
+  var grid = document.getElementById("grid"), chips = document.getElementById("chips"),
+      moreBtn = document.getElementById("more"), countEl = document.getElementById("result-count");
+
+  function prep(){
+    data.forEach(function(d,i){ d._i=i; d._vintage = d.year && d.year < 1980; d._hay=(d.title+" "+d.category+" "+(d.year||"")).toLowerCase(); });
+    document.getElementById("stat-count").textContent = data.length;
+    document.getElementById("stat-vintage").textContent = data.filter(function(d){return d._vintage}).length;
+  }
+  prep();
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  if (window.OLT_LISTINGS && window.OLT_LISTINGS.updated){
+    var u = new Date(window.OLT_LISTINGS.updated+"T12:00:00");
+    document.getElementById("updated").textContent = "Listings updated " + u.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+  }
+
+  function money(n){ return "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]}); }
+
+  function buildChips(){
+    var counts = {All:data.length};
+    data.forEach(function(d){ counts[d.category]=(counts[d.category]||0)+1; });
+    var html = ["All"].concat(CATS.filter(function(c){return counts[c]})).map(function(c){
+      return '<button class="chip" type="button" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+esc(c)+'<span class="n">'+counts[c]+'</span></button>';
+    }).join("");
+    chips.innerHTML = html;
+  }
+
+  function filtered(){
+    var words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+    var list = data.filter(function(d){
+      if (state.cat!=="All" && d.category!==state.cat) return false;
+      if (state.vintage && !d._vintage) return false;
+      for (var i=0;i<words.length;i++) if (d._hay.indexOf(words[i])<0) return false;
+      return true;
+    });
+    var s = state.sort;
+    list.sort(function(a,b){
+      if (s==="price-asc") return a.price-b.price;
+      if (s==="price-desc") return b.price-a.price;
+      if (s==="year-asc") return (a.year||9999)-(b.year||9999);
+      if (s==="year-desc") return (b.year||0)-(a.year||0);
+      return a._i-b._i;
+    });
+    return list;
+  }
+
+  function card(d){
+    var ship = d.shipping>0 ? "+"+money(d.shipping)+" shipping" : "Free shipping";
+    return '<article class="card">'+
+      '<a class="media" href="'+d.url+'" target="_blank" rel="noopener" aria-label="View on eBay: '+esc(d.title)+'">'+
+        '<img src="'+d.image+'" alt="'+esc(d.title)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer">'+
+        '<span class="tag">'+esc(d.category.replace(" Cards",""))+'</span>'+
+        (d._vintage?'<span class="vint">Vintage</span>':'')+
+      '</a>'+
+      '<div class="body">'+
+        '<h3><a href="'+d.url+'" target="_blank" rel="noopener">'+esc(d.title)+'</a></h3>'+
+        (d.condition?'<div class="meta">'+esc(d.condition)+'</div>':'')+
+        '<div class="price-row"><span class="price">'+money(d.price)+'</span><span class="ship">'+ship+'</span></div>'+
+        '<div class="offer-note">or Best Offer</div>'+
+        (d.slug?'<a class="story" href="blog/'+d.slug+'/index.html">Read the story &rarr;</a>':'')+
+        '<div class="actions">'+
+          '<a class="btn btn-gold" href="'+d.url+'" target="_blank" rel="noopener">Buy It Now</a>'+
+          '<a class="btn btn-line" href="'+d.url+'" target="_blank" rel="noopener">Make an Offer</a>'+
+        '</div>'+
+      '</div>'+
+    '</article>';
+  }
+
+  function render(){
+    var list = filtered();
+    var slice = list.slice(0,state.shown);
+    grid.innerHTML = slice.length ? slice.map(card).join("") :
+      '<div class="empty">No items match that search. Try another player, team or year — or <a href="https://www.ebay.com/usr/oddlottrading" target="_blank" rel="noopener">browse everything on eBay</a>.</div>';
+    countEl.textContent = list.length + (list.length===1?" item":" items");
+    moreBtn.hidden = list.length <= state.shown;
+    if (!moreBtn.hidden) moreBtn.textContent = "Show more ("+(list.length-state.shown)+" left)";
+  }
+
+  chips.addEventListener("click",function(e){
+    var b = e.target.closest(".chip"); if(!b) return;
+    state.cat = b.getAttribute("data-cat"); state.shown = PAGE;
+    Array.prototype.forEach.call(chips.children,function(c){c.setAttribute("aria-pressed", c===b)});
+    render();
+  });
+  var t;
+  document.getElementById("q").addEventListener("input",function(e){
+    clearTimeout(t); var v=e.target.value;
+    t=setTimeout(function(){ state.q=v; state.shown=PAGE; render(); },120);
+  });
+  document.getElementById("sort").addEventListener("change",function(e){ state.sort=e.target.value; state.shown=PAGE; render(); });
+  document.getElementById("vintage").addEventListener("change",function(e){ state.vintage=e.target.checked; state.shown=PAGE; render(); });
+  moreBtn.addEventListener("click",function(){ state.shown+=PAGE; render(); });
+
+  // If an eBay photo can't load, show the emblem instead of a broken image.
+  grid.addEventListener("error",function(e){
+    var img = e.target;
+    if (img.tagName==="IMG" && !img.dataset.fallback){ img.dataset.fallback="1"; img.src="assets/logo-round.webp"; img.style.opacity=".35"; img.style.padding="22%"; }
+  },true);
+
+  buildChips(); render();
+
+  // Live listings from the eBay sync (Cloudflare Worker). Falls back to the bundled snapshot.
+  if (location.protocol.indexOf("http")===0) {
+    fetch("/api/listings",{headers:{"Accept":"application/json"}}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+      if (!j || !j.items || !j.items.length) return;
+      data = j.items; prep(); buildChips(); render();
+      if (j.updated) document.getElementById("updated").textContent = "Listings synced with eBay " + new Date(j.updated).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+    }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
