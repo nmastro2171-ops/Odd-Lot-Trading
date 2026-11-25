@@ -40,6 +40,12 @@
     <div class="wrap">
       <h1 class="sr-only">Odd Lot Trading Co.</h1>
       <img class="logo" src="assets/logo-wide.webp" alt="Odd Lot Trading Co. — Cards, Coins, Comics, Collectibles, Electronics and more. Uncommon finds. Always a good haul." width="1200" height="614">
+      <section class="featured" id="featured" aria-roledescription="carousel" aria-label="Featured finds" hidden>
+        <div class="feat-head"><span class="label">★ Featured Finds</span>
+          <div class="feat-nav"><button type="button" class="feat-btn" id="feat-prev" aria-label="Previous">&#8249;</button><button type="button" class="feat-btn" id="feat-next" aria-label="Next">&#8250;</button></div></div>
+        <div class="feat-track" id="feat-track" tabindex="0"></div>
+        <div class="feat-dots" id="feat-dots" role="tablist" aria-label="Choose slide"></div>
+      </section>
       <p class="lead">Vintage and modern sports cards, coins and currency, comics, and collectibles — every item ships through eBay with Buy It Now or Make an Offer.</p>
       <ul class="stats">
         <li><strong id="stat-count">213</strong>Items listed</li>
@@ -100,6 +106,7 @@
 </footer>
 
 <script src="js/listings.js"></script>
+<script src="js/featured.js"></script>
 <script>
 (function(){
   var data = (window.OLT_LISTINGS && window.OLT_LISTINGS.items) || [];
@@ -201,19 +208,52 @@
   document.getElementById("vintage").addEventListener("change",function(e){ state.vintage=e.target.checked; state.shown=PAGE; render(); });
   moreBtn.addEventListener("click",function(){ state.shown+=PAGE; render(); });
 
+  /* ---------- Featured Finds slider ---------- */
+  var featTimer=null;
+  function buildFeatured(){
+    var wrap=document.getElementById("featured"), track=document.getElementById("feat-track"), dots=document.getElementById("feat-dots");
+    var byId={}; data.forEach(function(d){ byId[d.id]=d; });
+    var list=(window.OLT_FEATURED||[]).filter(function(f){ return byId[f.id]; });
+    if(!list.length){ wrap.hidden=true; return; }
+    wrap.hidden=false;
+    track.innerHTML=list.map(function(f,i){
+      var d=byId[f.id], big=d.image.replace(/s-l\d+\./,"s-l1600."), story=d.slug?'blog/'+d.slug+'/index.html':null;
+      return '<article class="slide" id="slide-'+i+'" aria-roledescription="slide" aria-label="'+(i+1)+' of '+list.length+'">'+
+        '<a class="slide-img" href="'+d.url+'" target="_blank" rel="noopener"><img src="'+big+'" alt="'+esc(d.title)+'" '+(i?'loading="lazy" ':'')+'referrerpolicy="no-referrer"></a>'+
+        '<div class="slide-body"><span class="slide-tag">'+esc(f.label||"Featured")+'</span>'+
+        '<h2>'+esc(d.title)+'</h2><p>'+esc(f.blurb||"")+'</p>'+
+        '<div class="slide-price"><span class="price">'+money(d.price)+'</span><span class="ship">'+(d.shipping>0?"+"+money(d.shipping)+" shipping":"Free shipping")+'</span></div>'+
+        '<div class="slide-actions"><a class="btn btn-gold" href="'+d.url+'" target="_blank" rel="noopener">Buy It Now</a><a class="btn btn-line" href="'+d.url+'" target="_blank" rel="noopener">Make an Offer</a>'+
+        (story?'<a class="slide-story" href="'+story+'">Read the story &rarr;</a>':'')+'</div></div></article>';
+    }).join("");
+    dots.innerHTML=list.map(function(f,i){ return '<button type="button" role="tab" aria-label="Slide '+(i+1)+'" data-i="'+i+'"></button>'; }).join("");
+    function cur(){ return Math.round(track.scrollLeft/Math.max(1,track.clientWidth)); }
+    function go(i){ var n=list.length; i=(i+n)%n; track.scrollTo({left:i*track.clientWidth,behavior:"smooth"}); }
+    function mark(){ var c=cur(); [].forEach.call(dots.children,function(b,i){ b.setAttribute("aria-selected", i===c); }); }
+    document.getElementById("feat-prev").onclick=function(){ go(cur()-1); restart(); };
+    document.getElementById("feat-next").onclick=function(){ go(cur()+1); restart(); };
+    dots.onclick=function(e){ var b=e.target.closest("button"); if(b){ go(+b.getAttribute("data-i")); restart(); } };
+    track.onkeydown=function(e){ if(e.key==="ArrowRight"){ go(cur()+1); restart(); } if(e.key==="ArrowLeft"){ go(cur()-1); restart(); } };
+    var st; track.onscroll=function(){ clearTimeout(st); st=setTimeout(mark,80); };
+    var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function restart(){ clearInterval(featTimer); if(!reduce && list.length>1) featTimer=setInterval(function(){ if(!wrap.matches(":hover")&&!wrap.contains(document.activeElement)) go(cur()+1); },6000); }
+    track.addEventListener("error",function(e){ var i=e.target; if(i.tagName==="IMG"&&!i.dataset.f){ i.dataset.f=1; i.src="assets/logo-round.webp"; i.classList.add("ph"); } },true);
+    track.scrollLeft=0; mark(); restart();
+  }
+
   // If an eBay photo can't load, show the emblem instead of a broken image.
   grid.addEventListener("error",function(e){
     var img = e.target;
     if (img.tagName==="IMG" && !img.dataset.fallback){ img.dataset.fallback="1"; img.src="assets/logo-round.webp"; img.style.opacity=".35"; img.style.padding="22%"; }
   },true);
 
-  buildChips(); render();
+  buildChips(); render(); buildFeatured();
 
   // Live listings from the eBay sync (Cloudflare Worker). Falls back to the bundled snapshot.
   if (location.protocol.indexOf("http")===0) {
     fetch("/api/listings",{headers:{"Accept":"application/json"}}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
       if (!j || !j.items || !j.items.length) return;
-      data = j.items; prep(); buildChips(); render();
+      data = j.items; prep(); buildChips(); render(); buildFeatured();
       if (j.updated) document.getElementById("updated").textContent = "Listings synced with eBay " + new Date(j.updated).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
     }).catch(function(){});
   }
