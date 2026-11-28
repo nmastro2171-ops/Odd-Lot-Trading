@@ -58,6 +58,11 @@
 
   <section id="shop">
     <div class="wrap">
+      <section class="sold-strip" id="sold-strip" aria-label="Recently sold" hidden>
+        <div class="feat-head"><span class="label">Recently Sold</span>
+          <div class="feat-nav"><button type="button" class="feat-btn" id="sold-prev" aria-label="Previous">&#8249;</button><button type="button" class="feat-btn" id="sold-next" aria-label="Next">&#8250;</button></div></div>
+        <div class="sold-track" id="sold-track" tabindex="0"></div>
+      </section>
       <div class="shop-head">
         <h2>The Haul</h2>
         <div class="count" id="result-count" aria-live="polite"></div>
@@ -107,6 +112,7 @@
 
 <script src="js/listings.js"></script>
 <script src="js/featured.js"></script>
+<script src="js/sold.js"></script>
 <script>
 (function(){
   var data = (window.OLT_LISTINGS && window.OLT_LISTINGS.items) || [];
@@ -240,6 +246,32 @@
     track.addEventListener("error",function(e){ var i=e.target; if(i.tagName==="IMG"&&!i.dataset.f){ i.dataset.f=1; i.src="assets/logo-round.webp"; i.classList.add("ph"); } },true);
     track.scrollLeft=0; mark(); restart();
   }
+
+  /* ---------- Recently Sold strip ---------- */
+  function buildSold(items){
+    var hide=window.OLT_SOLD_HIDE||[], wrap=document.getElementById("sold-strip"), track=document.getElementById("sold-track");
+    items=(items||[]).filter(function(i){ return hide.indexOf(i.id)<0; }).slice(0,20);
+    if(!items.length) return;
+    track.innerHTML=items.map(function(i){
+      var href=i.slug?'blog/'+i.slug+'/index.html':'https://www.ebay.com/itm/'+i.id;
+      return '<a class="sold-card" href="'+href+'"'+(i.slug?'':' target="_blank" rel="noopener"')+'><div class="sold-img"><img src="'+i.image+'" alt="'+esc(i.title)+'" loading="lazy" referrerpolicy="no-referrer"><span class="sold-band">Sold</span></div>'+
+        '<div class="sold-title">'+esc(i.title)+'</div></a>';
+    }).join("");
+    wrap.hidden=false;
+    function step(dir){ var c=track.querySelector('.sold-card'); var w=c?c.getBoundingClientRect().width+14:240;
+      var max=track.scrollWidth-track.clientWidth-4;
+      if(dir>0&&track.scrollLeft>=max) track.scrollTo({left:0,behavior:"smooth"}); else track.scrollBy({left:dir*w,behavior:"smooth"}); }
+    document.getElementById("sold-prev").onclick=function(){ step(-1); };
+    document.getElementById("sold-next").onclick=function(){ step(1); };
+    track.onkeydown=function(e){ if(e.key==="ArrowRight") step(1); if(e.key==="ArrowLeft") step(-1); };
+    track.addEventListener("error",function(e){ var t=e.target; if(t.tagName==="IMG"&&!t.dataset.f){ t.dataset.f=1; t.src="assets/logo-round.webp"; t.classList.add("ph"); } },true);
+    var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(!reduce&&items.length>2) setInterval(function(){ if(!wrap.matches(":hover")&&!wrap.contains(document.activeElement)) step(1); },4000);
+  }
+  if (location.protocol.indexOf("http")===0) {
+    fetch("/api/sold").then(function(r){ return r.ok?r.json():null; }).then(function(j){ if(j) buildSold(j.items); }).catch(function(){});
+  }
+  window._oltBuildSold=buildSold;
 
   // If an eBay photo can't load, show the emblem instead of a broken image.
   grid.addEventListener("error",function(e){

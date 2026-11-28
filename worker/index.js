@@ -25,6 +25,7 @@ export default {
 
     if (p === "/api/listings") return listingsResponse(env, ctx);
     if (p === "/api/posts") return postsResponse(env);
+    if (p === "/api/sold") return json((await env.OLT.get("recent_sold", "json")) || { items: [] }, 200, { "Cache-Control": "public, max-age=300" });
     if (p === "/api/status") return json((await env.OLT.get("last_sync", "json")) || { synced: false, secretSet: !!env.EBAY_CLIENT_SECRET }, 200, { "Cache-Control": "no-store" });
     if (p === "/api/refresh") {
       if (request.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -220,10 +221,28 @@ async function sync(env) {
   const autoPosts = [...autoById.values()].filter(p => activeIds.has(p.id))
     .sort((a, b) => (b.created || "").localeCompare(a.created || ""));
 
+  // Items that were listed last sync but are gone now are treated as sold.
+  let newlySold = 0;
+  if (previous && previous.items) {
+    const gone = previous.items.filter(i => !activeIds.has(i.id));
+    if (gone.length && gone.length <= 25) {
+      const log = (await env.OLT.get("recent_sold", "json")) || { items: [] };
+      const known = new Set(log.items.map(i => i.id));
+      const now = new Date().toISOString();
+      for (const g of gone) {
+        if (known.has(g.id)) continue;
+        log.items.unshift({ id: g.id, title: g.title, image: g.image, category: g.category, slug: g.slug || null, soldAt: now });
+        newlySold++;
+      }
+      log.items = log.items.slice(0, 40);
+      await env.OLT.put("recent_sold", JSON.stringify(log));
+    }
+  }
+
   await env.OLT.put("listings", JSON.stringify({ updated: new Date().toISOString(), seller: env.EBAY_SELLER, items }));
   await env.OLT.put("autoposts", JSON.stringify({ posts: autoPosts }));
 
-  return { ok: true, items: items.length, newAutoPosts: newAuto, ms: Date.now() - started };
+  return { ok: true, items: items.length, newAutoPosts: newAuto, newlySold, ms: Date.now() - started };
 }
 
 /* ------------------------------------------------------------------ auto posts */
